@@ -1,0 +1,99 @@
+/* ===========================================================================
+   tokens.css — EVERYTHING THAT CHANGES BETWEEN TWO CLIENTS LIVES IN THIS FILE.
+   To re-skin: edit §1 (brand) and nothing else. §2 onward is the system.
+   Reasons for every value are in ../../SYSTEM.md. Do not change a value here
+   without changing the reason there.
+   =========================================================================== */
+
+/* --- §1 BRAND — the re-skin surface ------------------------------------- */
+:root {
+  /* The accent. ONE hue. Must reach >= 4.5:1 against --n-95 (checked by verify.js).
+     Hi-vis yellow: the colour of a site vest. See SYSTEM.md §2 for the rule that
+     keeps it from reading as a hazard notice — it is a MARK, never a FILL. */
+  --hi: #FFD400;
+
+  /* Warm-neutral ramp, chroma ~0. Warm, not blue-grey: the measured trade-site
+     default is navy/steel, which reads corporate. Warm grey reads as paper and dust. */
+  --n-00: #FFFFFF;
+  --n-05: #F4F3F1;
+  --n-10: #E4E2DE;
+  --n-20: #C6C3BD;   /* RULES ONLY — 1.76:1 on white. Never carries text. */
+  --n-40: #8A8681;   /* hairlines, :disabled — 3.62:1, fails AA for text */
+  --n-60: #565350;   /* secondary text — 7.64:1 on white */
+  --n-80: #2A2926;
+  --n-95: #16150F;   /* body ink — 18.29:1 on white */
+
+  /* The face. One family, two optical uses (see SYSTEM.md §1). */
+  --font: 'Archivo', 'Archivo Fallback', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
+  --font-condensed-wdth: 78;   /* wdth axis value for the lockup + rail */
+}
+
+/* --- §2 ROLES — themes remap these, never the ramp ---------------------- */
+:root {
+  --bg:          var(--n-00);
+  --bg-panel:    var(--n-05);
+  --bg-inverse:  var(--n-95);
+  --ink:         var(--n-95);
+  --ink-2:       var(--n-60);
+  --ink-inverse: var(--n-00);
+  --rule:        var(--n-20);
+  --rule-strong: var(--n-40);
+  color-scheme: light;
+}
+
+/* --- §3 TYPE SCALE — six sizes carry text. There are no others. --------- */
+:root {
+  --t-micro: 0.75rem;                                        /* 12  rail labels, legal */
+  --t-label: 0.8125rem;                                      /* 13  eyebrows, form labels */
+  --t-body:  clamp(1.0625rem, 0.99rem + 0.33vw, 1.1875rem);  /* 17 → 19 */
+  --t-lead:  clamp(1.25rem,   1.13rem + 0.50vw, 1.5rem);     /* 20 → 24 */
+  --t-head:  clamp(1.75rem,   1.45rem + 1.30vw, 2.5rem);     /* 28 → 40 */
+  --t-claim: clamp(2.75rem,   1.90rem + 3.60vw, 5rem);       /* 44 → 80 */
+
+  --lh-claim: 1.05;
+  --lh-head:  1.15;
+  --lh-body:  1.5;
+  --tr-display: -0.022em;   /* negative tracking at display size */
+  --tr-label:    0.09em;    /* uppercase micro-labels */
+  --measure: 62ch;
+}
+
+/* --- §4 SPACE — non-linear on purpose. Section rhythm is 3 bands, not 1. */
+:root {
+  --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;  --s-5: 24px;
+  --s-6: 32px; --s-7: 48px;  --s-8: 72px;  --s-9: 112px; --s-10: 168px;
+
+  --band-tight:  var(--s-6);    /* operational strips */
+  --band-normal: var(--s-8);    /* most sections */
+  --band-open:   var(--s-10);   /* exactly twice per page */
+
+  --rail-w: 0px;                /* set at >=900px in layout.css */
+  --page-max: 1240px;
+  --gutter: var(--s-5);
+}
+
+/* --- §5 MOTION — one curve, three durations. Measured off Polaroid (81%). */
+:root {
+  --ease: cubic-bezier(.45,.02,.09,.98);
+  --t-press: 120ms;
+  --t-ui:    180ms;
+  --t-panel: 320ms;
+}
+
+/* --- §6 Metric-matched fallback, so swapping the webfont does not shift layout.
+   Numbers generated for Archivo against Arial with the Malte Ubl fallback tool
+   (industrialempathy.com/perfect-ish-font-fallback/), not guessed. If you change
+   --font you MUST regenerate these three or delete this block entirely; stale
+   overrides are worse than no override. */
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
+  size-adjust: 100.7%;
+  ascent-override: 92.5%;
+  descent-override: 24.4%;
+  line-gap-override: 0%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-press: 1ms; --t-ui: 1ms; --t-panel: 1ms; }
+}

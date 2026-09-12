@@ -1,0 +1,23 @@
+# 301s for every live URL the replacement merges or moves.
+# Verified 200 on the live site 2026-09-11 — each of these is real ranking that would
+# otherwise become a 404 on launch day. 301 not 302: a temporary redirect passes nothing.
+/drywall-installation-services     /drywall-repair                    301
+/exterior-painting                 /interior-painting-services        301
+/siding-repair                     /fence-repair                      301
+/gate-repair                       /fence-repair                      301
+/flooring-lvp                      /tile-and-grout                    301
+/door-installation                 /repairs-and-maintenance           301
+/about-us                          /about                             301
+/faq                               /about                             301
+/handyman-services                 /                                  301
+/gallery                           /                                  301
+/contact-us                        /#jobform                          301
+/a/locations/hours                 /                                  301
+
+# Towns still on the OLD site because their replacement has not earned publication.
+# Do NOT redirect these to the homepage — that would delete a ranking page.
+# /boise-handyman  — HELD, leave the existing page live
+# /nampa-handyman  — HELD, leave the existing page live
+# /eagle-handyman  — HELD, leave the existing page live
+# /kuna-handyman  — HELD, leave the existing page live
+# /caldwell-handyman  — HELD, leave the existing page live

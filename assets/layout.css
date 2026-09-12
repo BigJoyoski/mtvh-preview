@@ -1,0 +1,667 @@
+/* ===========================================================================
+   layout.css — the system. Solved once; should not need touching per client.
+   Re-skinning happens in tokens.css and content.js ONLY.
+
+   DECISION BLOCK (design-craft §2 — filled in before any markup existed):
+     kind       Composition, not System. A five-page brochure site.
+     direction  Instrument/hardware bent toward municipal signage (DIRECTIONS §5).
+     face       Archivo variable (wght 400-700, wdth 62-125) — highway/plate grotesque.
+     accent     ONE: hi-vis #FFD400, used as a MARK and never as a FILL.
+     curve      cubic-bezier(.45,.02,.09,.98) @180ms — Polaroid's, mechanical.
+     grid       4-col at 390, 12-col at 1024, with a hard left label rail from 900.
+     mechanism  THE PAGE IS A WORK ORDER. Numbered rail, line items, a job sheet
+                the visitor fills in by scrolling. See SYSTEM.md §7.
+
+   THINGS DELIBERATELY ABSENT, so nobody "fixes" them back in:
+     no centred hero · no three-card icon row · no gradient anywhere ·
+     no border-radius above 2px · no drop shadows · no scroll-reveal animation ·
+     no equal section padding · no stock photography slots.
+   =========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* The UA stylesheet's `[hidden] { display: none }` loses to ANY author `display`
+   rule. `.rating { display: flex }` therefore rendered a block marked hidden, and
+   the empty "from — Google reviews" line shipped on a page with no reviews. All 25
+   checks passed with it present — the probe cannot see that a hidden thing is
+   visible. Caught by looking at the render, 2026-09-11. */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums;   /* every number on the page aligns */
+  font-synthesis: none;                 /* a missing weight fails loudly, not smeared */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* `height: auto` is load-bearing, not tidiness. The width/height ATTRIBUTES on an <img> are
+   presentation hints; CSS `width:100%` overrides the width hint but the height hint survives,
+   so a 1200x900 image rendered 471px wide was still 900px TALL — ignoring aspect-ratio
+   entirely. That blew the hero row to 900px, left a 450px hole above the headline and pushed
+   the phone number below the fold on desktop. Caught by LOOKING at a render; every automated
+   check passed. 2026-09-11. */
+img, svg, video { max-width: 100%; display: block; height: auto; }
+
+/* Grid and flex children default to `min-width: auto`, which refuses to shrink below the
+   min-content width of their contents. A FAILED image keeps its width="" attribute as its
+   intrinsic size, so one broken 1200px photo dragged the whole hero column out to 1200px and
+   the page scrolled sideways — only when images fail, which is exactly the case nobody tests.
+   Measured 2026-09-11: scrollWidth 1224 against a 390px viewport. */
+.hero__grid > *, .jobs > *, .quotes > *, .foot__grid > *, .item > * { min-width: 0; }
+
+/* --- craft states: all six. SYSTEM.md §6. -------------------------------- */
+:focus-visible {
+  outline: 3px solid var(--hi);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+::selection { background: var(--hi); color: var(--n-95); }
+:disabled, [aria-disabled="true"] {
+  color: var(--n-40);
+  border-color: var(--n-20);
+  cursor: not-allowed;
+}
+* { scrollbar-width: thin; scrollbar-color: var(--n-40) var(--n-05); }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--n-05); }
+*::-webkit-scrollbar-thumb { background: var(--n-40); border: 2px solid var(--n-05); }
+*::-webkit-scrollbar-thumb:hover { background: var(--n-60); }
+
+/* --- type primitives ----------------------------------------------------- */
+.claim {
+  font-size: var(--t-claim);
+  line-height: var(--lh-claim);
+  letter-spacing: var(--tr-display);
+  font-weight: 700;
+  margin: 0;
+  text-wrap: balance;
+}
+.head {
+  font-size: var(--t-head);
+  line-height: var(--lh-head);
+  letter-spacing: var(--tr-display);
+  font-weight: 700;
+  margin: 0;
+  text-wrap: balance;
+}
+.lead {
+  font-size: var(--t-lead);
+  line-height: 1.35;
+  font-weight: 400;
+  margin: 0;
+  max-width: 30ch;
+  text-wrap: pretty;
+}
+.body { font-size: var(--t-body); max-width: var(--measure); margin: 0; text-wrap: pretty; }
+.label {
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 0;
+}
+.micro {
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin: 0;
+}
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+.condensed { font-stretch: 78%; font-variation-settings: "wdth" var(--font-condensed-wdth); }
+
+/* --- page frame. The rail is the mechanism, not decoration. --------------- */
+.page {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.sheet { position: relative; }
+
+@media (min-width: 900px) {
+  :root { --rail-w: 132px; }
+  .sheet { padding-left: var(--rail-w); }
+  /* the rail line runs the whole document height, like a printed form */
+  .sheet::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--rail-w) - var(--s-5));
+    top: 0; bottom: 0;
+    width: 1px;
+    background: var(--rule);
+  }
+}
+
+/* A rail marker: the line number + field label of a work order. */
+.rail {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
+  color: var(--ink-2);
+}
+.rail__n {
+  font-size: var(--t-micro);
+  font-weight: 700;
+  color: var(--n-95);
+  background: var(--hi);            /* the mark. 12.78:1. Bounded to a ~20px chip. */
+  padding: 2px var(--s-2);
+  letter-spacing: 0.04em;
+}
+.rail__label {
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+@media (min-width: 900px) {
+  .rail {
+    position: absolute;
+    /* .band is inside .sheet, which carries padding-left: var(--rail-w). An absolutely
+       positioned child resolves `left` against the PADDING box, so `left: 0` landed the
+       marker on top of the headline. Pull it back out into the gutter. 2026-09-11. */
+    left: calc(var(--rail-w) * -1);
+    top: var(--s-1);
+    width: calc(var(--rail-w) - var(--s-6));
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-2);
+    margin: 0;
+  }
+}
+
+/* --- section rhythm: THREE bands, deliberately unequal (SYSTEM.md §3) ----- */
+.band       { padding-block: var(--band-normal); position: relative; }
+.band--tight{ padding-block: var(--band-tight); }
+.band--open { padding-block: var(--band-open); }
+.band + .band { border-top: 1px solid var(--rule); }
+.band--flush + .band--flush { border-top: 0; }
+
+/* =========================================================================
+   HEADER — trust marks live here, not in the footer. Measured: only 4 of 12
+   trade sites show any trust mark above the fold.
+   ========================================================================= */
+.masthead {
+  border-bottom: 2px solid var(--n-95);
+  background: var(--bg);
+}
+.masthead__in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-5);
+  padding-block: var(--s-3);
+}
+.wordmark {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  color: var(--ink);
+  margin-right: auto;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-height: 44px;          /* tap target */
+  align-content: center;
+  flex-wrap: wrap;
+}
+.wordmark__est { font-size: var(--t-micro); color: var(--ink-2); letter-spacing: 0.08em; }
+
+.trustbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.trustbar li {
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.trustbar li::before {
+  content: "";
+  width: 6px; height: 6px;
+  background: var(--hi);
+  flex: none;
+}
+
+/* Desktop call button in the header — one of the five placements. */
+.callbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 48px;
+  padding: var(--s-2) var(--s-5);
+  background: var(--n-95);
+  color: var(--n-00);
+  text-decoration: none;
+  font-weight: 700;
+  border: 0;
+  border-bottom: 4px solid var(--hi);   /* the mark, as an edge */
+  transition: background var(--t-ui) var(--ease), transform var(--t-press) var(--ease);
+}
+.callbtn:hover { background: var(--n-80); }
+.callbtn:active { transform: translateY(1px); }
+.callbtn__n { font-size: 1.0625rem; }
+
+/* =========================================================================
+   HERO — the top block of a work order. Not a centred slab.
+   Asymmetric: label rail left, claim right (design-craft §6).
+   ========================================================================= */
+.hero { padding-top: var(--s-8); padding-bottom: var(--band-open); }
+.hero__grid { display: grid; gap: var(--s-6); }
+@media (min-width: 1024px) {
+  .hero__grid { grid-template-columns: minmax(0,1.15fr) minmax(0,1fr); gap: var(--s-8); align-items: end; }
+}
+.hero__claim { margin-bottom: var(--s-4); }
+.hero__where {
+  font-size: var(--t-lead);
+  font-weight: 400;
+  color: var(--ink);
+  margin: 0 0 var(--s-6);
+  max-width: 26ch;
+}
+.hero__where b { font-weight: 700; }
+
+/* The phone number is the largest NUMBER on the page, in tabular figures. */
+.hero__call {
+  display: block;
+  text-decoration: none;
+  color: var(--ink);
+  border-top: 2px solid var(--n-95);
+  padding-top: var(--s-3);
+}
+.hero__call:hover .hero__num { color: var(--n-60); }
+.hero__num {
+  display: block;
+  font-size: clamp(2rem, 1.2rem + 3.2vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  transition: color var(--t-ui) var(--ease);
+}
+.hero__promise { color: var(--ink-2); font-size: var(--t-label); margin-top: var(--s-2); }
+/* MTVH: the secondary contact route. Uses --t-label, an EXISTING step — the
+   type-sizes-<=8 check fails the build if a new size is invented here. */
+.hero__alt { color: var(--ink-2); font-size: var(--t-label); margin-top: var(--s-3); }
+/* An inline link inside a 14px line is a 14px tap target. Padded to 44px and set
+   inline-flex so the box actually grows; the negative margin keeps the sentence
+   reading as a sentence rather than as a button in a line of text. */
+.hero__alt a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 2px;
+  margin-block: calc(var(--s-1) * -1);
+}
+.hero__alt a:hover { color: var(--n-60); }
+
+/* The hero photograph: full-bleed, square corners, no shadow. */
+/* No background on the FIGURE — the plate belongs on the <img> only. A figure-level ground
+   becomes the composited background of the caption inside it and drops --n-60 captions from
+   7.64:1 to 5.91:1. Measured 2026-09-11. */
+.hero__photo { position: relative; }
+.hero__photo img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+
+/* =========================================================================
+   PHOTOGRAPHY — makes a client's bad phone snapshot look deliberate.
+   SYSTEM.md §4: fixed ratio + inset hairline + square corners + a caption
+   carrying job, town and date. The caption is what turns a snapshot into evidence.
+   ========================================================================= */
+.photo { position: relative; }
+.photo > img {
+  width: 100%;
+  aspect-ratio: var(--ratio, 4/3);
+  object-fit: cover;
+  object-position: var(--focus, 50% 50%);
+  background: var(--n-10);           /* the plate a failed image falls back to */
+  /* inset hairline: separates a dark photo from a dark ground and a light from a light one,
+     without a border that would read as a card. An outline with a negative offset scopes it
+     to the IMAGE — a ::after on the figure also covered the caption, which put the caption's
+     composited ground at --n-10 and dropped it to 5.91:1. Measured 2026-09-11. */
+  outline: 1px solid rgb(0 0 0 / 0.12);
+  outline-offset: -1px;
+}
+/* Optional, OFF by default. Pulls back phone-camera oversaturation when a set is
+   wildly inconsistent. It is a crutch — do not apply it globally without looking. */
+.photo--flatten > img { filter: contrast(1.04) saturate(0.92); }
+
+/* Two lines, not one wrapping row: the job name is the caption's headline and the metadata
+   sits under it. A single flex row wrapped mid-list and left a dangling "/" at the end of the
+   first line, which is exactly the kind of small sloppiness that makes a page look assembled. */
+.photo__cap {
+  display: grid;
+  gap: 3px;
+  padding-top: var(--s-2);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.photo__cap b { color: var(--ink); font-weight: 700; }
+.photo__meta { display: flex; flex-wrap: wrap; gap: 0 var(--s-3); }
+/* The "/" between job, town and date is at --n-20 = 1.76:1 on white, and tokens.css
+   says of that token in its own comment: "RULES ONLY. Never carries text." The stylesheet
+   was breaking the system's own written rule, seven times a page.
+   It is marked aria-hidden in the markup, which makes it punctuation rather than content —
+   the honest fix, since darkening something nobody is meant to read only makes the noise
+   louder. Caught by a SECOND instrument (the Legible scanner); this project's own probe
+   scored the page 7.64:1 minimum and never saw it. */
+.photo__cap .sep { color: var(--n-20); }
+
+/* WHEN IMAGES FAIL: the alt text must still read as a caption, not as a broken
+   icon in a void. A grey plate with a hairline holds the layout and the alt text. */
+img { color: var(--ink-2); font-size: var(--t-micro); }
+
+/* =========================================================================
+   SERVICES — numbered LINE ITEMS. Not three cards with circled icons.
+   ========================================================================= */
+.items { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-2) var(--s-4);
+  padding-block: var(--s-5);
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+@media (min-width: 760px) {
+  .item { grid-template-columns: 3.5rem minmax(0,1fr) minmax(0,15rem); gap: var(--s-5); align-items: baseline; }
+}
+.item__n {
+  font-size: var(--t-label);
+  font-weight: 700;
+  color: var(--ink-2);
+  letter-spacing: 0.04em;
+  padding-top: 0.35em;
+}
+.item__body { grid-column: 2 / -1; }
+@media (min-width: 760px) { .item__body { grid-column: 2; } }
+.item__name {
+  font-size: var(--t-lead);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  margin: 0 0 var(--s-2);
+  line-height: 1.2;
+}
+/* inline-block + vertical padding so the service link is a 44px tap target, not a 24px one */
+.item__name a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 2px solid var(--hi);
+  display: inline-block;
+  padding-block: 10px;
+  min-height: 44px;
+}
+.item__name a:hover { background: var(--hi); }
+.item__scope { margin: 0; color: var(--ink-2); max-width: 52ch; }
+.item__basis {
+  grid-column: 2 / -1;
+  margin-top: var(--s-2);
+  font-size: var(--t-label);
+  font-weight: 600;
+  color: var(--ink);
+  border-top: 1px solid var(--rule);
+  padding-top: var(--s-2);
+}
+@media (min-width: 760px) {
+  .item__basis { grid-column: 3; margin-top: 0; border-top: 0; padding-top: 0; text-align: right; }
+}
+.item--urgent .item__n { background: var(--hi); color: var(--n-95); padding: 2px 6px; }
+
+/* =========================================================================
+   TOWNS — a scannable list, not a paragraph. Homeowners look for their own.
+   ========================================================================= */
+.towns { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-3); list-style: none; margin: 0; padding: 0; }
+.towns li {
+  font-size: var(--t-body);
+  font-weight: 600;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--rule);
+}
+.towns li:first-child { border-color: var(--n-95); border-width: 2px; }
+/* A town chip that is a LINK has to be a 44px target. The chip's padding moves onto
+   the anchor so the whole chip is tappable rather than the 19px of text inside it —
+   measured 5 offenders on town.html before this. If :has() is unsupported the li
+   keeps its padding and the anchor adds its own, which is larger, not smaller: the
+   failure mode is a roomier target, never a smaller one. */
+.towns li:has(a) { padding: 0; }
+.towns li a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  color: inherit;
+  text-decoration: none;
+}
+.towns li a:hover { color: var(--n-60); }
+
+/* =========================================================================
+   CONDUCT — the client's five stated values, set as a numbered clause list so
+   they read as terms rather than as marketing. The hi-vis stays a MARK (the
+   counter), never a fill. Uses existing type steps only: adding a size here
+   would fail the type-sizes-<=8 check.
+   ========================================================================= */
+.values { list-style: none; margin: 0; padding: 0; counter-reset: v; max-width: 62ch; }
+.values li {
+  counter-increment: v;
+  position: relative;
+  font-size: var(--t-body);
+  padding: var(--s-3) 0 var(--s-3) var(--s-6);
+  border-top: 1px solid var(--rule);
+}
+.values li:last-child { border-bottom: 1px solid var(--rule); }
+.values li::before {
+  content: counter(v, decimal-leading-zero);
+  position: absolute; left: 0; top: var(--s-3);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-micro);
+  color: var(--n-95);
+  background: var(--hi);
+  padding: 2px 5px;
+}
+
+/* =========================================================================
+   JOBS — full-bleed evidence strip, edge to edge, zero gutter.
+   ========================================================================= */
+.jobs { display: grid; gap: var(--s-6); }
+@media (min-width: 700px) { .jobs { grid-template-columns: repeat(2, 1fr); gap: var(--s-6) var(--s-5); } }
+@media (min-width: 1100px) { .jobs { grid-template-columns: repeat(3, 1fr); } }
+
+/* =========================================================================
+   SMALL SETS. A client sends three photos, not twelve — that is the normal
+   case, not the edge case. With the plain grid above, three photos break
+   2 + 1 between 700 and 1099px, four break 3 + 1 above 1100px, and ONE renders
+   as a third-width picture floating against empty space. All three read as a
+   page with content missing.
+
+   The intent: a small set must look CHOSEN, not DEPLETED. So the column count
+   is matched to the item count instead of leaving a hole, and a lone photo is
+   shown large and wide — presented as the job they are proud of rather than
+   as the only one they had.
+
+   :has() is Chrome 105+ / Safari 15.4+ and is verified present in WebKit 18.2
+   by tools/webkit-check.js. Where it is unsupported these rules are dropped
+   whole and the plain grid above still renders every photo — the fallback is
+   the old orphan, never a broken layout.
+   ========================================================================= */
+
+/* ONE: full width, wider crop. Never a lonely card. */
+@media (min-width: 700px) {
+  .jobs:has(> :only-child) { grid-template-columns: 1fr; }
+}
+.jobs:has(> :only-child) > .photo > img { aspect-ratio: 16/9; }
+
+/* THREE: a complete row of three from 700px, rather than 2 + 1. */
+@media (min-width: 700px) {
+  .jobs:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* TWO: two columns, not two-thirds of a three-column row. The grid maths reports
+   this as a "complete" single row, which is why it survived the first pass — one
+   row cannot have an orphan. It is still a visible hole on the right. Caught by
+   looking at the 1280px render. */
+@media (min-width: 1100px) {
+  .jobs:has(> :nth-child(2):last-child) { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* FOUR: hold 2x2 at every desktop width, rather than 3 + 1. */
+@media (min-width: 1100px) {
+  .jobs:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* =========================================================================
+   REVIEWS — plain quotes with a name, a town and the job. No star graphics,
+   no carousel, no avatars.
+   ========================================================================= */
+.quotes { display: grid; gap: var(--s-6); }
+@media (min-width: 860px) { .quotes { grid-template-columns: repeat(3,1fr); gap: var(--s-6); } }
+.quote { border-top: 2px solid var(--n-95); padding-top: var(--s-3); margin: 0; }
+.quote p { margin: 0 0 var(--s-3); font-size: var(--t-body); }
+.quote footer { font-size: var(--t-micro); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.quote footer b { color: var(--ink); }
+.rating { display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; }
+.rating__n { font-size: var(--t-head); font-weight: 700; letter-spacing: -0.02em; }
+
+/* =========================================================================
+   FORM — the bottom of the work order. THREE fields and a photo.
+   Measured: of the 5 trade sites in the sample with a homepage form,
+   three run 9-17 fields.
+   ========================================================================= */
+.form { display: grid; gap: var(--s-4); max-width: 34rem; }
+.field { display: grid; gap: var(--s-2); }
+.field > label { font-size: var(--t-label); letter-spacing: var(--tr-label); text-transform: uppercase; font-weight: 600; }
+.field input, .field textarea {
+  font: inherit;
+  font-size: var(--t-body);
+  color: var(--ink);
+  background: var(--n-00);
+  border: 2px solid var(--n-95);
+  border-radius: 0;
+  padding: var(--s-3);
+  min-height: 52px;
+  width: 100%;
+  transition: border-color var(--t-ui) var(--ease), background var(--t-ui) var(--ease);
+}
+.field textarea { min-height: 112px; resize: vertical; }
+.field input:hover, .field textarea:hover { background: var(--n-05); }
+.field input:focus, .field textarea:focus { border-color: var(--hi); background: var(--n-00); }
+.field__hint { font-size: var(--t-micro); color: var(--ink-2); letter-spacing: 0.04em; }
+
+/* Photo upload, styled as a real control. Zero of twelve measured trade sites accept one. */
+.filefield { border: 2px dashed var(--n-40); padding: var(--s-4); display: grid; gap: var(--s-2); }
+.filefield:focus-within { border-color: var(--hi); border-style: solid; }
+.filefield input[type=file] { font: inherit; font-size: var(--t-label); min-height: 44px; }
+.filefield__note { font-size: var(--t-micro); color: var(--ink-2); }
+
+.submit {
+  min-height: 56px;
+  padding: var(--s-3) var(--s-6);
+  background: var(--n-95);
+  color: var(--n-00);
+  border: 0;
+  border-bottom: 4px solid var(--hi);
+  font: inherit;
+  font-weight: 700;
+  font-size: var(--t-body);
+  cursor: pointer;
+  justify-self: start;
+  transition: background var(--t-ui) var(--ease), transform var(--t-press) var(--ease);
+}
+.submit:hover { background: var(--n-80); }
+.submit:active { transform: translateY(1px); }
+.submit:disabled { background: var(--n-20); color: var(--n-60); border-bottom-color: var(--n-40); }
+
+.formstatus { font-size: var(--t-label); font-weight: 600; }
+.formstatus[data-state="error"] { color: #A3261B; }        /* 6.3:1 on white, measured */
+.formstatus[data-state="ok"] { color: #1D6B3A; }           /* 5.2:1 on white, measured */
+
+/* =========================================================================
+   FOOTER — reversed. The last of the five phone placements.
+   ========================================================================= */
+.foot { background: var(--bg-inverse); color: var(--ink-inverse); padding-block: var(--s-8); }
+.foot a { color: var(--n-00); }
+.foot .micro { color: var(--n-20); }
+.foot__grid { display: grid; gap: var(--s-6); }
+@media (min-width: 800px) { .foot__grid { grid-template-columns: repeat(3, 1fr); gap: var(--s-7); } }
+.foot__call {
+  font-size: var(--t-head); font-weight: 700; letter-spacing: -0.02em;
+  text-decoration: none; display: inline-block;
+  min-height: 44px; padding-block: var(--s-1);   /* tap target */
+}
+.foot__call:hover { color: var(--hi); }
+
+/* =========================================================================
+   STICKY MOBILE CALL BAR — the playbook's single highest-value element.
+   Below 760px only. Never covers the form's submit button (padding-bottom on body).
+   ========================================================================= */
+.callbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  background: var(--n-95);
+  border-top: 4px solid var(--hi);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  transform: translateY(0);
+  transition: transform var(--t-panel) var(--ease);
+}
+.callbar a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: 60px;
+  padding: var(--s-2) var(--s-4);
+  color: var(--n-00);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.0625rem;
+}
+.callbar a + a { border-left: 1px solid var(--n-60); font-weight: 600; font-size: var(--t-label); letter-spacing: var(--tr-label); text-transform: uppercase; }
+.callbar a:active { background: var(--n-80); }
+@media (min-width: 760px) { .callbar { display: none; } }
+/* The bar is 64px, but on an iPhone with a home indicator it grows by
+   env(safe-area-inset-bottom) (34px on a 14/15 in portrait) to 98px — while this
+   reserved a flat 76px, leaving 22px of page content permanently underneath it.
+   Measured in BOTH Chromium and WebKit 18.2 via tools/webkit-check.js, 2026-09-11.
+   The reservation has to track the same inset the bar does. */
+@media (max-width: 759px) { body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); } }
+
+/* skip link */
+.skip {
+  position: absolute; left: -9999px;
+  background: var(--n-95); color: var(--n-00);
+  padding: var(--s-3) var(--s-4); z-index: 100; font-weight: 700;
+}
+.skip:focus { left: var(--s-4); top: var(--s-3); }
+
+/* =========================================================================
+   REDUCED MOTION — there is almost nothing to remove, which is the point.
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
